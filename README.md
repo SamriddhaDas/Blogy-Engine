@@ -6,7 +6,6 @@
 blogy-engine/
 ├── server.js           # Express backend + API routes
 ├── package.json        # Dependencies
-└── public/
     └── index.html      # Full frontend dashboard
 ```
 
