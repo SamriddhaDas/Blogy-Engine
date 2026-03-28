@@ -1,6 +1,6 @@
 # Blogy-Engine
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 blogy-engine/
@@ -14,7 +14,7 @@ blogy-engine/
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -23,7 +23,7 @@ blogy-engine/
 | POST | `/api/seo-audit` | SEO content audit |
 
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ```
 INPUT: Keyword + Parameters
@@ -57,5 +57,5 @@ OUTPUT: Blog + SEO Report + Platform Versions
 
 ---
 
-##License
+## License
 MIT
