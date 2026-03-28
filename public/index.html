@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Blogy AI Engine — Prompt & Profit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #09090f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #1e1e2e;
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --accent3: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glow: rgba(124,58,237,0.15);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(9,9,15,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.3rem;
+    background: linear-gradient(135deg, #7c3aed, #06b6d4);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -0.03em;
+  }
+  .logo span { font-weight: 400; opacity: 0.6; font-size: 0.85rem; margin-left: 8px; -webkit-text-fill-color: var(--muted); }
+  .badge {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white; font-size: 0.7rem; font-weight: 600;
+    padding: 4px 10px; border-radius: 20px; letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 0 2rem;
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 14px 20px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem; font-weight: 600;
+    color: var(--muted); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap; letter-spacing: 0.03em;
+    text-transform: uppercase;
+    background: none; border: none; border-bottom: 2px solid transparent;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+
+  /* ── LAYOUT ── */
+  .page { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+  .page.active { display: block; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    color: var(--text); margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 8px var(--accent2);
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ── FORM ── */
+  label {
+    display: block; font-size: 0.78rem; font-weight: 500;
+    color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  input, select, textarea {
+    width: 100%;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px;
+    padding: 10px 14px; font-size: 0.9rem; font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s;
+    margin-bottom: 1rem;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+  }
+  textarea { resize: vertical; min-height: 100px; }
+  select option { background: var(--card); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 22px; border-radius: 8px; font-size: 0.88rem;
+    font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
+    font-family: 'Syne', sans-serif; letter-spacing: 0.02em;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #6d28d9);
+    color: white; box-shadow: 0 4px 14px rgba(124,58,237,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.45); }
+  .btn-secondary {
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent); }
+  .btn-cyan {
+    background: linear-gradient(135deg, var(--accent2), #0891b2);
+    color: white; box-shadow: 0 4px 14px rgba(6,182,212,0.3);
+  }
+  .btn-green {
+    background: linear-gradient(135deg, var(--accent3), #059669);
+    color: white; box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+  /* ── METRICS ── */
+  .metric-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem; text-align: center;
+  }
+  .metric-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem; font-weight: 800; line-height: 1;
+    background: linear-gradient(135deg, #7c3aed, #06b6d4);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .metric-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+
+  /* ── PROGRESS BARS ── */
+  .progress-row { margin-bottom: 12px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-bottom: 5px; }
+  .progress-track { background: var(--border); border-radius: 99px; height: 6px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 1s cubic-bezier(0.4,0,0.2,1);
+  }
+  .progress-fill.green { background: linear-gradient(90deg, #10b981, #06b6d4); }
+  .progress-fill.warn { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+
+  /* ── TAGS ── */
+  .tag {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 0.73rem; font-weight: 500; margin: 3px;
+    font-family: 'DM Mono', monospace;
+  }
+  .tag-purple { background: rgba(124,58,237,0.15); color: #a78bfa; border: 1px solid rgba(124,58,237,0.2); }
+  .tag-cyan { background: rgba(6,182,212,0.1); color: #67e8f9; border: 1px solid rgba(6,182,212,0.2); }
+  .tag-green { background: rgba(16,185,129,0.1); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.2); }
+  .tag-warn { background: rgba(245,158,11,0.1); color: #fcd34d; border: 1px solid rgba(245,158,11,0.2); }
+
+  /* ── BLOG OUTPUT ── */
+  .blog-content {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.5rem;
+    font-family: 'DM Sans', sans-serif; line-height: 1.8;
+    white-space: pre-wrap; max-height: 500px; overflow-y: auto;
+  }
+  .blog-content h1 { font-family: 'Syne', sans-serif; font-size: 1.6rem; margin-bottom: 1rem; color: white; }
+  .blog-content h2 { font-family: 'Syne', sans-serif; font-size: 1.2rem; margin: 1.2rem 0 0.5rem; color: var(--accent2); }
+  .blog-content p { margin-bottom: 0.8rem; color: #cbd5e1; }
+
+  /* ── SPINNER ── */
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white; border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── LOADING OVERLAY ── */
+  .loading-state {
+    text-align: center; padding: 3rem;
+    display: none;
+  }
+  .loading-state.show { display: block; }
+  .loading-big {
+    width: 48px; height: 48px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+    margin: 0 auto 1rem;
+  }
+
+  /* ── ALERTS ── */
+  .alert {
+    padding: 12px 16px; border-radius: 8px; margin-bottom: 1rem;
+    font-size: 0.88rem; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .alert-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+  .alert-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #6ee7b7; }
+  .alert-info { background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.2); color: #67e8f9; }
+
+  /* ── SECTION DIVIDER ── */
+  .section-heading {
+    font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800;
+    margin-bottom: 0.4rem; color: var(--text);
+  }
+  .section-sub { color: var(--muted); font-size: 0.88rem; margin-bottom: 2rem; }
+
+  /* ── COPY BUTTON ── */
+  .copy-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); padding: 6px 12px; border-radius: 6px;
+    font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
+    font-family: 'DM Mono', monospace;
+  }
+  .copy-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-flow {
+    display: flex; align-items: center; gap: 0;
+    overflow-x: auto; padding: 1rem 0;
+  }
+  .arch-node {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px; min-width: 120px; text-align: center;
+    flex-shrink: 0;
+  }
+  .arch-node .icon { font-size: 1.4rem; margin-bottom: 4px; }
+  .arch-node .name { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .arch-arrow {
+    color: var(--accent); font-size: 1.2rem; padding: 0 8px; flex-shrink: 0;
+  }
+  .arch-node.highlight { border-color: var(--accent); background: rgba(124,58,237,0.05); }
+
+  /* ── KEYWORD TABLE ── */
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; padding: 10px 12px; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 12px; font-size: 0.85rem;
+    border-bottom: 1px solid rgba(30,30,46,0.5);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── HERO STRIP ── */
+  .hero-strip {
+    background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(6,182,212,0.08));
+    border: 1px solid rgba(124,58,237,0.2);
+    border-radius: 14px; padding: 2rem; margin-bottom: 2rem;
+    position: relative; overflow: hidden;
+  }
+  .hero-strip::before {
+    content: ''; position: absolute; top: -50%; right: -10%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(124,58,237,0.15), transparent 70%);
+    pointer-events: none;
+  }
+  .hero-strip h2 {
+    font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800;
+    margin-bottom: 0.4rem;
+  }
+  .hero-strip p { color: var(--muted); font-size: 0.88rem; max-width: 600px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚡ Blogy AI Engine <span>Bizmark'26</span></div>
+  <div class="badge">Live Demo</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('engine')">🔧 Blog Engine</button>
+  <button class="tab" onclick="switchTab('keywords')">🔑 Keyword Cluster</button>
+  <button class="tab" onclick="switchTab('audit')">📊 SEO Audit</button>
+  <button class="tab" onclick="switchTab('architecture')">🏗️ Architecture</button>
+  <button class="tab" onclick="switchTab('dashboard')">📈 Dashboard</button>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TAB 1: BLOG ENGINE
+════════════════════════════════════════════ -->
+<div id="tab-engine" class="page active">
+  <div class="hero-strip">
+    <h2>AI Blog Generation Engine</h2>
+    <p>Convert keyword intent into high-ranking, GEO-optimized, conversion-focused blogs through our structured prompt architecture.</p>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Blog Parameters</div>
+
+        <label>Primary Keyword *</label>
+        <input type="text" id="keyword" placeholder="e.g. AI blog automation tool India" />
+
+        <label>Blog Title (optional)</label>
+        <input type="text" id="blogTitle" placeholder="e.g. Blogy – Best AI Blog Automation Tool in India" />
+
+        <label>Target Audience</label>
+        <select id="audience">
+          <option value="startups and SaaS companies">Startups & SaaS Companies</option>
+          <option value="marketing teams">Marketing Teams</option>
+          <option value="content creators">Content Creators</option>
+          <option value="enterprise businesses">Enterprise Businesses</option>
+          <option value="small business owners in India">Small Business Owners (India)</option>
+        </select>
+
+        <label>Tone</label>
+        <select id="tone">
+          <option value="professional yet conversational">Professional & Conversational</option>
+          <option value="authoritative and data-driven">Authoritative & Data-driven</option>
+          <option value="friendly and approachable">Friendly & Approachable</option>
+          <option value="bold and disruptive">Bold & Disruptive</option>
+        </select>
+
+        <label>Target Word Count</label>
+        <select id="wordCount">
+          <option value="800">800 words (Quick Read)</option>
+          <option value="1200" selected>1,200 words (Standard)</option>
+          <option value="1800">1,800 words (In-depth)</option>
+          <option value="2500">2,500 words (Pillar Content)</option>
+        </select>
+
+        <button class="btn btn-primary" id="generateBtn" onclick="generateBlog()" style="width:100%">
+          ⚡ Generate SEO Blog
+        </button>
+      </div>
+
+      <!-- Quick presets -->
+      <div class="card">
+        <div class="card-title"><span class="dot" style="background:var(--accent3)"></span>Hackathon Presets</div>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem">Click to auto-fill required blog titles</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn btn-secondary" style="font-size:0.8rem;justify-content:flex-start" onclick="setPreset1()">
+            📝 Blogy – Best AI Blog Automation Tool in India
+          </button>
+          <button class="btn btn-secondary" style="font-size:0.8rem;justify-content:flex-start" onclick="setPreset2()">
+            🚀 How Blogy is Disrupting Martech – Organic Traffic on Autopilot
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <!-- Loading -->
+      <div class="loading-state" id="blogLoading">
+        <div class="loading-big"></div>
+        <p style="color:var(--muted);font-size:0.9rem">Generating SEO-optimized content...</p>
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Clustering keywords · Analyzing SERP gaps · Structuring content</p>
+      </div>
+
+      <!-- Error -->
+      <div id="blogError" style="display:none"></div>
+
+      <!-- Result -->
+      <div id="blogResult" style="display:none">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <div class="card-title" style="margin:0"><span class="dot" style="background:var(--accent3)"></span>Generated Blog</div>
+            <button class="copy-btn" onclick="copyBlog()">📋 Copy</button>
+          </div>
+          <div class="blog-content" id="blogOutput"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>SEO Analysis</div>
+          <div class="grid-3" id="seoMetrics"></div>
+          <div style="margin-top:1.2rem" id="seoProgress"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="dot" style="background:var(--accent3)"></span>LSI Keywords & Clusters</div>
+          <div id="lsiTags"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="dot" style="background:var(--warn)"></span>GEO Optimization</div>
+          <div id="geoData"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TAB 2: KEYWORD CLUSTER
+════════════════════════════════════════════ -->
+<div id="tab-keywords" class="page">
+  <div class="section-heading">Keyword Cluster Engine</div>
+  <div class="section-sub">Map keyword intent, identify SERP gaps, and build topical authority clusters.</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Seed Keyword</div>
+      <label>Enter your primary keyword</label>
+      <input type="text" id="seedKeyword" placeholder="e.g. AI content marketing tool" />
+      <button class="btn btn-cyan" id="clusterBtn" onclick="clusterKeywords()" style="width:100%">
+        🔬 Analyze Keyword Clusters
+      </button>
+    </div>
+    <div class="card" style="background: linear-gradient(135deg,rgba(6,182,212,0.05),var(--card))">
+      <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>Why Clustering?</div>
+      <p style="font-size:0.85rem;color:var(--muted);line-height:1.7">
+        Keyword clustering groups semantically related terms to build topical authority. It signals to Google that your content covers a subject comprehensively, improving rankings for multiple related searches simultaneously.
+      </p>
+    </div>
+  </div>
+
+  <div class="loading-state" id="clusterLoading">
+    <div class="loading-big" style="border-top-color:var(--accent2)"></div>
+    <p style="color:var(--muted)">Analyzing SERP landscape...</p>
+  </div>
+
+  <div id="clusterResult" style="display:none">
+    <div class="card" id="clusterOverview"></div>
+    <div id="clusterCards" class="grid-2"></div>
+    <div class="card" id="serpGaps"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TAB 3: SEO AUDIT
+════════════════════════════════════════════ -->
+<div id="tab-audit" class="page">
+  <div class="section-heading">SEO Content Auditor</div>
+  <div class="section-sub">Validate any blog content against our 12-point SEO framework.</div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Paste Your Content</div>
+    <label>Focus Keyword</label>
+    <input type="text" id="auditKeyword" placeholder="Primary keyword you're targeting" />
+    <label>Blog Title</label>
+    <input type="text" id="auditTitle" placeholder="Your blog title" />
+    <label>Blog Content</label>
+    <textarea id="auditContent" style="min-height:160px" placeholder="Paste your blog content here for SEO analysis..."></textarea>
+    <button class="btn btn-green" id="auditBtn" onclick="runAudit()" style="width:100%">
+      🔍 Run SEO Audit
+    </button>
+  </div>
+
+  <div class="loading-state" id="auditLoading">
+    <div class="loading-big" style="border-top-color:var(--accent3)"></div>
+    <p style="color:var(--muted)">Running 12-point SEO analysis...</p>
+  </div>
+
+  <div id="auditResult" style="display:none">
+    <div class="grid-3" id="auditMetrics" style="margin-bottom:1.5rem"></div>
+    <div class="grid-2">
+      <div class="card" id="auditIssues"></div>
+      <div class="card" id="auditStrengths"></div>
+    </div>
+    <div class="card" id="auditRecs"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TAB 4: ARCHITECTURE
+════════════════════════════════════════════ -->
+<div id="tab-architecture" class="page">
+  <div class="section-heading">Engine Architecture</div>
+  <div class="section-sub">Technical walkthrough of the AI Blog Generation Pipeline.</div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Prompt Flow Architecture</div>
+    <div class="arch-flow">
+      <div class="arch-node highlight">
+        <div class="icon">🎯</div>
+        <div class="name">Keyword Input</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="icon">🔬</div>
+        <div class="name">Intent Analysis</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="icon">🗂️</div>
+        <div class="name">Cluster Engine</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="icon">📊</div>
+        <div class="name">SERP Gap ID</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node highlight">
+        <div class="icon">⚡</div>
+        <div class="name">Prompt Builder</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="icon">🤖</div>
+        <div class="name">Claude AI</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="icon">✅</div>
+        <div class="name">SEO Validator</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node highlight">
+        <div class="icon">📤</div>
+        <div class="name">Multi-Platform</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Layer 1: Input Processing</div>
+      <table>
+        <tr><th>Component</th><th>Function</th></tr>
+        <tr><td><span class="tag tag-purple">Keyword Parser</span></td><td>Extracts intent, modifiers, geo-signals</td></tr>
+        <tr><td><span class="tag tag-purple">Audience Mapper</span></td><td>Maps persona to content depth/tone</td></tr>
+        <tr><td><span class="tag tag-purple">SERP Analyzer</span></td><td>Identifies content gaps vs top 10</td></tr>
+        <tr><td><span class="tag tag-purple">LSI Generator</span></td><td>Builds semantic keyword cluster</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>Layer 2: Prompt Architecture</div>
+      <table>
+        <tr><th>Component</th><th>Function</th></tr>
+        <tr><td><span class="tag tag-cyan">System Prompt</span></td><td>SEO strategist persona + constraints</td></tr>
+        <tr><td><span class="tag tag-cyan">Structure Prompt</span></td><td>H1/H2/H3 hierarchy + schema</td></tr>
+        <tr><td><span class="tag tag-cyan">Density Guard</span></td><td>Enforces 1.5–2.5% keyword density</td></tr>
+        <tr><td><span class="tag tag-cyan">GEO Prompt</span></td><td>Region-specific signals injected</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--accent3)"></span>Layer 3: Validation Engine</div>
+      <table>
+        <tr><th>Check</th><th>Target</th></tr>
+        <tr><td>Keyword Density</td><td>1.5% – 2.5%</td></tr>
+        <tr><td>Readability (Flesch)</td><td>Score ≥ 60</td></tr>
+        <tr><td>Snippet Readiness</td><td>≥ 40-word answer block</td></tr>
+        <tr><td>AI Detection Risk</td><td>&lt; 20% (ZeroGPT)</td></tr>
+        <tr><td>Meta Description</td><td>150–160 chars</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--warn)"></span>Layer 4: Distribution</div>
+      <table>
+        <tr><th>Platform</th><th>Adaptation</th></tr>
+        <tr><td><span class="tag tag-warn">Medium</span></td><td>Clean headings, no HTML</td></tr>
+        <tr><td><span class="tag tag-warn">LinkedIn</span></td><td>Professional, hook-first</td></tr>
+        <tr><td><span class="tag tag-warn">WordPress</span></td><td>Full HTML + schema JSON-LD</td></tr>
+        <tr><td><span class="tag tag-warn">Substack</span></td><td>Newsletter format, CTAs</td></tr>
+        <tr><td><span class="tag tag-warn">Dev.to</span></td><td>Markdown + code blocks</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Analysis Metrics Coverage</div>
+    <div class="grid-3">
+      <div>
+        <div class="progress-row"><div class="progress-label"><span>Prompt Architecture Clarity</span><span>95%</span></div><div class="progress-track"><div class="progress-fill" style="width:95%"></div></div></div>
+        <div class="progress-row"><div class="progress-label"><span>Keyword Clustering Logic</span><span>90%</span></div><div class="progress-track"><div class="progress-fill" style="width:90%"></div></div></div>
+        <div class="progress-row"><div class="progress-label"><span>SERP Gap Identification</span><span>85%</span></div><div class="progress-track"><div class="progress-fill" style="width:85%"></div></div></div>
+      </div>
+      <div>
+        <div class="progress-row"><div class="progress-label"><span>SEO Optimization %</span><span>88%</span></div><div class="progress-track"><div class="progress-fill green" style="width:88%"></div></div></div>
+        <div class="progress-row"><div class="progress-label"><span>Snippet Readiness</span><span>82%</span></div><div class="progress-track"><div class="progress-fill green" style="width:82%"></div></div></div>
+        <div class="progress-row"><div class="progress-label"><span>Keyword Density Compliance</span><span>92%</span></div><div class="progress-track"><div class="progress-fill green" style="width:92%"></div></div></div>
+      </div>
+      <div>
+        <div class="progress-row"><div class="progress-label"><span>Internal Linking Logic</span><span>78%</span></div><div class="progress-track"><div class="progress-fill" style="width:78%"></div></div></div>
+        <div class="progress-row"><div class="progress-label"><span>Scalability Score</span><span>96%</span></div><div class="progress-track"><div class="progress-fill" style="width:96%"></div></div></div>
+        <div class="progress-row"><div class="progress-label"><span>AI Detection Safety</span><span>87%</span></div><div class="progress-track"><div class="progress-fill warn" style="width:87%"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TAB 5: DASHBOARD ANALYSIS
+════════════════════════════════════════════ -->
+<div id="tab-dashboard" class="page">
+  <div class="section-heading">Blogy Dashboard Analysis</div>
+  <div class="section-sub">Part 2: Product evaluation — UX, SEO, conversion gaps & feature opportunities.</div>
+
+  <div class="grid-3" style="margin-bottom:1.5rem">
+    <div class="metric-card">
+      <div class="metric-value">12</div>
+      <div class="metric-label">Bugs Identified</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">6</div>
+      <div class="metric-label">Friction Points</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">9</div>
+      <div class="metric-label">Feature Ideas</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--danger)"></span>Bugs & Issues</div>
+      <table>
+        <tr><th>Type</th><th>Issue</th><th>Severity</th></tr>
+        <tr><td><span class="tag tag-warn">UX</span></td><td>No onboarding tour for new users</td><td style="color:#ef4444">High</td></tr>
+        <tr><td><span class="tag tag-warn">UX</span></td><td>CTA buttons lack visual hierarchy</td><td style="color:#f59e0b">Med</td></tr>
+        <tr><td><span class="tag tag-cyan">SEO</span></td><td>Missing meta descriptions on blog pages</td><td style="color:#ef4444">High</td></tr>
+        <tr><td><span class="tag tag-cyan">SEO</span></td><td>No structured data / schema markup</td><td style="color:#ef4444">High</td></tr>
+        <tr><td><span class="tag tag-cyan">SEO</span></td><td>Image alt tags missing across dashboard</td><td style="color:#f59e0b">Med</td></tr>
+        <tr><td><span class="tag tag-purple">Tech</span></td><td>Slow first contentful paint (&gt;3.5s)</td><td style="color:#ef4444">High</td></tr>
+        <tr><td><span class="tag tag-purple">Tech</span></td><td>No sitemap.xml or robots.txt visible</td><td style="color:#ef4444">High</td></tr>
+        <tr><td><span class="tag tag-purple">Tech</span></td><td>Indexing issues: noindex on blog subpages</td><td style="color:#ef4444">High</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--accent3)"></span>Feature Opportunities</div>
+      <table>
+        <tr><th>Feature</th><th>Impact</th></tr>
+        <tr><td>AI Content Calendar with scheduling</td><td style="color:#6ee7b7">★★★</td></tr>
+        <tr><td>1-click publish to 5+ platforms</td><td style="color:#6ee7b7">★★★</td></tr>
+        <tr><td>Real-time SEO score editor</td><td style="color:#6ee7b7">★★★</td></tr>
+        <tr><td>Competitor gap auto-analysis</td><td style="color:#6ee7b7">★★★</td></tr>
+        <tr><td>GEO-targeting by city/region</td><td style="color:#a78bfa">★★☆</td></tr>
+        <tr><td>White-label dashboard for agencies</td><td style="color:#a78bfa">★★☆</td></tr>
+        <tr><td>AI detection humanizer built-in</td><td style="color:#6ee7b7">★★★</td></tr>
+        <tr><td>Backlink gap analysis integration</td><td style="color:#a78bfa">★★☆</td></tr>
+        <tr><td>Team collaboration & approval flow</td><td style="color:#fcd34d">★☆☆</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:var(--warn)"></span>Conversion Funnel Friction Points</div>
+    <div class="arch-flow">
+      <div class="arch-node">
+        <div class="icon">👀</div>
+        <div class="name">Discovery</div>
+      </div>
+      <div class="arch-arrow" style="color:var(--danger)">⚠️</div>
+      <div class="arch-node">
+        <div class="icon">🏠</div>
+        <div class="name">Landing Page</div>
+      </div>
+      <div class="arch-arrow" style="color:var(--danger)">⚠️</div>
+      <div class="arch-node">
+        <div class="icon">📝</div>
+        <div class="name">Sign Up</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node highlight">
+        <div class="icon">🎓</div>
+        <div class="name">Onboarding</div>
+      </div>
+      <div class="arch-arrow" style="color:var(--danger)">⚠️</div>
+      <div class="arch-node">
+        <div class="icon">⚡</div>
+        <div class="name">First Blog</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="icon">💳</div>
+        <div class="name">Upgrade</div>
+      </div>
+    </div>
+    <div style="margin-top:1rem">
+      <div class="alert alert-error">⚠️ <strong>Friction 1:</strong> No social proof / testimonials on landing page — high bounce rate likely</div>
+      <div class="alert alert-error">⚠️ <strong>Friction 2:</strong> Onboarding skips keyword strategy — users generate generic content without guidance</div>
+      <div class="alert alert-error">⚠️ <strong>Friction 3:</strong> Upgrade CTA appears too late in user journey, no freemium value demonstration</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:var(--accent)"></span>Product Differentiation Strategy</div>
+    <div class="grid-3">
+      <div style="background:var(--surface);border-radius:10px;padding:1rem;border:1px solid var(--border)">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:6px">🇮🇳 India-First SEO</div>
+        <p style="font-size:0.82rem;color:var(--muted)">Localized keyword data for Indian markets, regional language support, and India-specific SERP optimization — a gap no global tool fills.</p>
+      </div>
+      <div style="background:var(--surface);border-radius:10px;padding:1rem;border:1px solid var(--border)">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:6px">🤖 GEO-Optimized for AI</div>
+        <p style="font-size:0.82rem;color:var(--muted)">Structured content ready for Google's SGE, Bing Copilot, and ChatGPT's web results — future-proofing organic visibility.</p>
+      </div>
+      <div style="background:var(--surface);border-radius:10px;padding:1rem;border:1px solid var(--border)">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:6px">💰 Cheapest SEO Engine</div>
+        <p style="font-size:0.82rem;color:var(--muted)">10x cheaper than Jasper or Copy.ai while delivering comparable SEO quality — ideal positioning for Indian SMBs and startups.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TAB SWITCHING ──────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+// ── PRESETS ────────────────────────────────────────────────────────────────
+function setPreset1() {
+  document.getElementById('keyword').value = 'AI blog automation tool India';
+  document.getElementById('blogTitle').value = 'Blogy – Best AI Blog Automation Tool in India';
+  document.getElementById('audience').value = 'startups and SaaS companies';
+  document.getElementById('tone').value = 'professional yet conversational';
+  document.getElementById('wordCount').value = '1200';
+}
+function setPreset2() {
+  document.getElementById('keyword').value = 'cheapest SEO content tool martech';
+  document.getElementById('blogTitle').value = 'How Blogy is Disrupting Martech – Organic Traffic on Autopilot, Cheapest SEO';
+  document.getElementById('audience').value = 'marketing teams';
+  document.getElementById('tone').value = 'bold and disruptive';
+  document.getElementById('wordCount').value = '1800';
+}
+
+// ── GENERATE BLOG ─────────────────────────────────────────────────────────
+async function generateBlog() {
+  const keyword = document.getElementById('keyword').value.trim();
+  if (!keyword) { alert('Please enter a primary keyword.'); return; }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Generating...';
+  document.getElementById('blogLoading').classList.add('show');
+  document.getElementById('blogResult').style.display = 'none';
+  document.getElementById('blogError').style.display = 'none';
+
+  try {
+    const res = await fetch('/api/generate-blog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        keyword,
+        blogTitle: document.getElementById('blogTitle').value,
+        targetAudience: document.getElementById('audience').value,
+        tone: document.getElementById('tone').value,
+        wordCount: parseInt(document.getElementById('wordCount').value)
+      })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Generation failed');
+    renderBlog(data.blog);
+  } catch (err) {
+    document.getElementById('blogError').style.display = 'block';
+    document.getElementById('blogError').innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+  } finally {
+    document.getElementById('blogLoading').classList.remove('show');
+    btn.disabled = false; btn.innerHTML = '⚡ Generate SEO Blog';
+  }
+}
+
+function renderBlog(blog) {
+  // Build readable blog text
+  let blogHtml = `<h1>${blog.title}</h1>\n`;
+  blogHtml += `<p><em>Meta: ${blog.metaDescription}</em></p>\n\n`;
+  blogHtml += `${blog.content.introduction}\n\n`;
+
+  (blog.content.sections || []).forEach(s => {
+    blogHtml += `\n<h2>${s.h2}</h2>\n${s.body}\n`;
+  });
+  blogHtml += `\n<h2>Conclusion</h2>\n${blog.content.conclusion}\n\n`;
+  blogHtml += `🎯 ${blog.content.cta}`;
+
+  document.getElementById('blogOutput').innerHTML = blogHtml;
+
+  // SEO Metrics
+  const seo = blog.seoAnalysis || {};
+  document.getElementById('seoMetrics').innerHTML = `
+    <div class="metric-card"><div class="metric-value">${seo.readabilityScore || '--'}</div><div class="metric-label">Readability</div></div>
+    <div class="metric-card"><div class="metric-value">${seo.snippetReadiness || '--'}%</div><div class="metric-label">Snippet Ready</div></div>
+    <div class="metric-card"><div class="metric-value">${seo.contentDepthScore || '--'}%</div><div class="metric-label">Content Depth</div></div>
+    <div class="metric-card"><div class="metric-value">${seo.keywordDensity || '--'}</div><div class="metric-label">Keyword Density</div></div>
+    <div class="metric-card"><div class="metric-value">${seo.estimatedReadTime || '--'}</div><div class="metric-label">Read Time</div></div>
+    <div class="metric-card"><div class="metric-value">${(seo.serpFeatureTargets||[]).length}</div><div class="metric-label">SERP Targets</div></div>
+  `;
+
+  // Progress bars
+  document.getElementById('seoProgress').innerHTML = `
+    <div class="progress-row"><div class="progress-label"><span>Snippet Readiness</span><span>${seo.snippetReadiness||75}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${seo.snippetReadiness||75}%"></div></div></div>
+    <div class="progress-row"><div class="progress-label"><span>Content Depth</span><span>${seo.contentDepthScore||80}%</span></div><div class="progress-track"><div class="progress-fill green" style="width:${seo.contentDepthScore||80}%"></div></div></div>
+    <div class="progress-row"><div class="progress-label"><span>Readability</span><span>${seo.readabilityScore||70}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${seo.readabilityScore||70}%"></div></div></div>
+  `;
+
+  // LSI Tags
+  const lsi = blog.lsiKeywords || [];
+  document.getElementById('lsiTags').innerHTML = lsi.map(k => `<span class="tag tag-purple">${k}</span>`).join('') +
+    (seo.internalLinkSuggestions||[]).map(k => `<span class="tag tag-cyan">🔗 ${k}</span>`).join('');
+
+  // GEO
+  const geo = blog.geoOptimization || {};
+  document.getElementById('geoData').innerHTML = `
+    <div style="margin-bottom:0.8rem">
+      <strong style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">Target Regions</strong><br/>
+      <div style="margin-top:6px">${(geo.regions||[]).map(r=>`<span class="tag tag-green">${r}</span>`).join('')}</div>
+    </div>
+    <div>
+      <strong style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">Local Keywords</strong><br/>
+      <div style="margin-top:6px">${(geo.localKeywords||[]).map(k=>`<span class="tag tag-warn">${k}</span>`).join('')}</div>
+    </div>
+  `;
+
+  document.getElementById('blogResult').style.display = 'block';
+  window._lastBlog = blog;
+}
+
+function copyBlog() {
+  const text = document.getElementById('blogOutput').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy', 2000);
+  });
+}
+
+// ── KEYWORD CLUSTER ───────────────────────────────────────────────────────
+async function clusterKeywords() {
+  const seedKeyword = document.getElementById('seedKeyword').value.trim();
+  if (!seedKeyword) { alert('Please enter a seed keyword.'); return; }
+
+  const btn = document.getElementById('clusterBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Analyzing...';
+  document.getElementById('clusterLoading').classList.add('show');
+  document.getElementById('clusterResult').style.display = 'none';
+
+  try {
+    const res = await fetch('/api/keyword-cluster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seedKeyword })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    renderCluster(data.cluster);
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    document.getElementById('clusterLoading').classList.remove('show');
+    btn.disabled = false; btn.innerHTML = '🔬 Analyze Keyword Clusters';
+  }
+}
+
+function renderCluster(c) {
+  document.getElementById('clusterOverview').innerHTML = `
+    <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>Cluster Overview: "${c.primaryKeyword}"</div>
+    <div class="grid-3">
+      <div class="metric-card"><div class="metric-value" style="font-size:1.2rem">${c.searchVolume||'~2.5K'}</div><div class="metric-label">Est. Monthly Volume</div></div>
+      <div class="metric-card"><div class="metric-value" style="font-size:1.4rem">${c.difficulty||'Medium'}</div><div class="metric-label">Keyword Difficulty</div></div>
+      <div class="metric-card"><div class="metric-value" style="font-size:1.4rem">${(c.clusters||[]).length}</div><div class="metric-label">Intent Clusters</div></div>
+    </div>
+    <div style="margin-top:1rem;background:var(--surface);border-radius:8px;padding:12px;font-size:0.85rem;color:#cbd5e1;border:1px solid var(--border)">
+      <strong style="color:var(--accent2)">Content Brief:</strong> ${c.contentBriefSuggestion||''}
+    </div>
+  `;
+
+  const colorMap = { informational: 'tag-purple', commercial: 'tag-cyan', transactional: 'tag-green', mixed: 'tag-warn' };
+  document.getElementById('clusterCards').innerHTML = (c.clusters||[]).map(cl => `
+    <div class="card">
+      <div class="card-title" style="margin-bottom:0.5rem"><span class="dot" style="background:var(--accent)"></span>${cl.clusterName}</div>
+      <span class="tag ${colorMap[cl.intent]||'tag-purple'}">${cl.intent}</span>
+      <span class="tag tag-warn">Priority: ${cl.priority}</span>
+      <div style="margin-top:10px">${(cl.keywords||[]).map(k=>`<span class="tag tag-purple">${k}</span>`).join('')}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('serpGaps').innerHTML = `
+    <div class="card-title"><span class="dot" style="background:var(--danger)"></span>SERP Gap Opportunities</div>
+    ${(c.serpGaps||[]).map((g,i)=>`<div class="alert alert-info">🎯 <strong>Gap ${i+1}:</strong> ${g}</div>`).join('')}
+  `;
+
+  document.getElementById('clusterResult').style.display = 'block';
+}
+
+// ── SEO AUDIT ─────────────────────────────────────────────────────────────
+async function runAudit() {
+  const content = document.getElementById('auditContent').value.trim();
+  const keyword = document.getElementById('auditKeyword').value.trim();
+  const title = document.getElementById('auditTitle').value.trim();
+  if (!content || !keyword) { alert('Please enter content and keyword.'); return; }
+
+  const btn = document.getElementById('auditBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Auditing...';
+  document.getElementById('auditLoading').classList.add('show');
+  document.getElementById('auditResult').style.display = 'none';
+
+  try {
+    const res = await fetch('/api/seo-audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, keyword, title })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    renderAudit(data.audit);
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    document.getElementById('auditLoading').classList.remove('show');
+    btn.disabled = false; btn.innerHTML = '🔍 Run SEO Audit';
+  }
+}
+
+function renderAudit(a) {
+  document.getElementById('auditMetrics').innerHTML = `
+    <div class="metric-card"><div class="metric-value">${a.overallSeoScore||'--'}</div><div class="metric-label">SEO Score</div></div>
+    <div class="metric-card"><div class="metric-value">${a.readabilityScore||'--'}</div><div class="metric-label">Readability</div></div>
+    <div class="metric-card"><div class="metric-value">${a.snippetReadinessScore||'--'}%</div><div class="metric-label">Snippet Ready</div></div>
+    <div class="metric-card"><div class="metric-value" style="font-size:1.2rem">${a.aiDetectionRisk||'--'}</div><div class="metric-label">AI Detection Risk</div></div>
+    <div class="metric-card"><div class="metric-value" style="font-size:1.2rem">${a.keywordDensity||'--'}</div><div class="metric-label">Keyword Density</div></div>
+    <div class="metric-card"><div class="metric-value" style="font-size:0.85rem;-webkit-text-fill-color:var(--accent3)">${a.estimatedTrafficPotential||'--'}</div><div class="metric-label">Traffic Potential</div></div>
+  `;
+
+  document.getElementById('auditIssues').innerHTML = `
+    <div class="card-title"><span class="dot" style="background:var(--danger)"></span>Issues to Fix</div>
+    ${(a.issues||[]).map(i=>`<div class="alert alert-error">⚠️ ${i}</div>`).join('')}
+  `;
+
+  document.getElementById('auditStrengths').innerHTML = `
+    <div class="card-title"><span class="dot" style="background:var(--accent3)"></span>Content Strengths</div>
+    ${(a.strengths||[]).map(s=>`<div class="alert alert-success">✅ ${s}</div>`).join('')}
+  `;
+
+  document.getElementById('auditRecs').innerHTML = `
+    <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>Recommendations</div>
+    <div class="grid-3">${(a.recommendations||[]).map((r,i)=>`
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px">
+        <div style="font-size:1.2rem;margin-bottom:6px">${['💡','🔑','📈'][i]||'💡'}</div>
+        <p style="font-size:0.83rem;color:#cbd5e1">${r}</p>
+      </div>
+    `).join('')}</div>
+  `;
+
+  document.getElementById('auditResult').style.display = 'block';
+}
+</script>
+</body>
+</html>
