@@ -6,8 +6,6 @@
 blogy-engine/
 ├── server.js           # Express backend + API routes
 ├── package.json        # Dependencies
-├── .env.example        # Environment template
-├── .env                # Your actual keys (never commit this!)
 └── public/
     └── index.html      # Full frontend dashboard
 ```
